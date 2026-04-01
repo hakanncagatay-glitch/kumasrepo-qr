@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import QRCode from 'qrcode.react'
+import QRCode from 'qr-code-styling'
 import '../styles/QRCodeGenerator.css'
 
 export default function QRCodeGenerator() {
@@ -13,11 +13,28 @@ export default function QRCodeGenerator() {
   }
 
   const downloadQR = () => {
-    const qr = document.querySelector('canvas')
-    const link = document.createElement('a')
-    link.href = qr.toDataURL('image/png')
-    link.download = 'qrcode.png'
-    link.click()
+    const qrCode = new QRCode({
+      content: text,
+      width: 256,
+      height: 256,
+      type: 'canvas',
+      data: {
+        url: text,
+      },
+      image: 'svg',
+      margin: 10,
+      qrOptions: {
+        typeNumber: 0,
+        mode: 'Byte',
+        errorCorrectionLevel: 'H',
+      },
+      imageOptions: {
+        hideBackgroundDots: false,
+        imageSize: 0.4,
+        margin: 0,
+      },
+    })
+    qrCode.download('qrcode.png')
   }
 
   const copyToClipboard = () => {
@@ -45,13 +62,7 @@ export default function QRCodeGenerator() {
       {qrValue && (
         <div className="qr-display">
           <div className="qr-wrapper">
-            <QRCode
-              value={qrValue}
-              size={256}
-              level="H"
-              includeMargin={true}
-              renderAs="canvas"
-            />
+            <canvas id="qr-canvas" />
           </div>
 
           <div className="qr-actions">
