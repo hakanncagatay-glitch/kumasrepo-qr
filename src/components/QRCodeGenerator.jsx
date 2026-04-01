@@ -1,13 +1,16 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import QRCode from 'qr-code-styling'
 import '../styles/QRCodeGenerator.css'
 
 export default function QRCodeGenerator() {
   const [text, setText] = useState('')
   const [qrValue, setQrValue] = useState('')
+  const qrRef = useRef(null)
 
   useEffect(() => {
-    if (qrValue) {
+    if (qrValue && qrRef.current) {
+      qrRef.current.innerHTML = '' // Öncekini temizle
+      
       const qrCode = new QRCode({
         content: qrValue,
         width: 256,
@@ -20,7 +23,7 @@ export default function QRCodeGenerator() {
           errorCorrectionLevel: 'H',
         },
       })
-      qrCode.append(document.getElementById('qr-canvas'))
+      qrCode.append(qrRef.current)
     }
   }, [qrValue])
 
@@ -70,7 +73,7 @@ export default function QRCodeGenerator() {
 
       {qrValue && (
         <div className="qr-display">
-          <div className="qr-wrapper" id="qr-canvas"></div>
+          <div className="qr-wrapper" ref={qrRef}></div>
 
           <div className="qr-actions">
             <button onClick={downloadQR}>⬇️ İndir</button>
