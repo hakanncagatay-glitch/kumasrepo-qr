@@ -1,10 +1,28 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import QRCode from 'qr-code-styling'
 import '../styles/QRCodeGenerator.css'
 
 export default function QRCodeGenerator() {
   const [text, setText] = useState('')
   const [qrValue, setQrValue] = useState('')
+
+  useEffect(() => {
+    if (qrValue) {
+      const qrCode = new QRCode({
+        content: qrValue,
+        width: 256,
+        height: 256,
+        type: 'canvas',
+        margin: 10,
+        qrOptions: {
+          typeNumber: 0,
+          mode: 'Byte',
+          errorCorrectionLevel: 'H',
+        },
+      })
+      qrCode.append(document.getElementById('qr-canvas'))
+    }
+  }, [qrValue])
 
   const generateQR = () => {
     if (text.trim()) {
@@ -18,23 +36,14 @@ export default function QRCodeGenerator() {
       width: 256,
       height: 256,
       type: 'canvas',
-      data: {
-        url: text,
-      },
-      image: 'svg',
       margin: 10,
       qrOptions: {
         typeNumber: 0,
         mode: 'Byte',
         errorCorrectionLevel: 'H',
       },
-      imageOptions: {
-        hideBackgroundDots: false,
-        imageSize: 0.4,
-        margin: 0,
-      },
     })
-    qrCode.download('qrcode.png')
+    qrCode.download({ name: 'qrcode', extension: 'png' })
   }
 
   const copyToClipboard = () => {
@@ -61,9 +70,7 @@ export default function QRCodeGenerator() {
 
       {qrValue && (
         <div className="qr-display">
-          <div className="qr-wrapper">
-            <canvas id="qr-canvas" />
-          </div>
+          <div className="qr-wrapper" id="qr-canvas"></div>
 
           <div className="qr-actions">
             <button onClick={downloadQR}>⬇️ İndir</button>
