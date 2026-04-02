@@ -1,9 +1,19 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import '../styles/QRCodeGenerator.css'
 
 export default function QRCodeGenerator() {
   const [text, setText] = useState('')
-  const [qrUrl, setQrUrl] = useState('')
+  const [showQR, setShowQR] = useState(false)
+  const canvasRef = useRef(null)
+
+  // QR kütüphanesini yükle
+  useEffect(() => {
+    if (!window.QRCode) {
+      const script = document.createElement('script')
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js'
+      document.head.appendChild(script)
+    }
+  }, [])
 
   const generateQR = () => {
     const v = text.trim()
@@ -11,15 +21,27 @@ export default function QRCodeGenerator() {
       alert('Lütfen metin girin!')
       return
     }
-    // URL'yi direkt oluştur
-    const url = `https://chart.googleapis.com/chart?chs=300x300&chld=L|0&cht=qr&chl=${encodeURIComponent(v)}`
-    setQrUrl(url)
+
+    // QR oluştur
+    const container = document.getElementById('qr-code-canvas')
+    if (container) container.innerHTML = ''
+
+    if (window.QRCode) {
+      new window.QRCode(document.getElementById('qr-code-canvas'), {
+        text: v,
+        width: 256,
+        height: 256,
+      })
+      setShowQR(true)
+    }
   }
 
   const downloadQR = () => {
-    if (!qrUrl) return
+    const canvas = document.querySelector('#qr-code-canvas canvas')
+    if (!canvas) return
+
     const link = document.createElement('a')
-    link.href = qrUrl
+    link.href = canvas.toDataURL('image/png')
     link.download = 'qrcode.png'
     link.click()
   }
@@ -44,25 +66,21 @@ export default function QRCodeGenerator() {
           <button onClick={generateQR}>✨ QR Oluştur</button>
           <button onClick={() => {
             setText('')
-            setQrUrl('')
+            setShowQR(false)
           }}>🗑️ Temizle</button>
         </div>
       </div>
 
-      {qrUrl && (
+      {showQR && (
         <div className="qr-display">
           <div className="qr-wrapper">
-            <img
-              src={qrUrl}
-              alt="QR Code"
-              style={{ maxWidth: '100%', height: 'auto' }}
-            />
+            <div id="qr-code-canvas"></div>
           </div>
 
           <div className="qr-actions">
             <button onClick={downloadQR}>⬇️ İndir</button>
             <button onClick={copyToClipboard}>📋 Metni Kopyala</button>
-            <button onClick={() => setQrUrl('')}>🗑️ Sil</button>
+            <button onClick={() => setShowQR(false)}>🗑️ Sil</button>
           </div>
         </div>
       )}
