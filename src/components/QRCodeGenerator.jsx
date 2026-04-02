@@ -1,46 +1,44 @@
-import { useState, useEffect, useRef } from 'react'
-import QRCode from 'qr-code-styling'
+import { useMemo, useState } from 'react'
+import QRCode from 'qrcode.react'
 import '../styles/QRCodeGenerator.css'
 
 export default function QRCodeGenerator() {
   const [text, setText] = useState('')
   const [qrValue, setQrValue] = useState('')
-  const containerRef = useRef(null)
-
-  useEffect(() => {
-    if (qrValue && containerRef.current) {
-      containerRef.current.innerHTML = ''
-      
-      const qr = new QRCode({
-        content: qrValue,
-        width: 300,
-        height: 300,
-        margin: 10,
-      })
-      
-      qr.append(containerRef.current)
-    }
-  }, [qrValue])
 
   const generateQR = () => {
-    if (text.trim()) {
-      setQrValue(text)
-    }
+    const v = text.trim()
+    if (v) setQrValue(v)
   }
 
-  const downloadQR = async () => {
-    const qr = new QRCode({
-      content: text,
-      width: 300,
-      height: 300,
-      margin: 10,
-    })
-    qr.download({ name: 'qrcode', extension: 'png' })
-  }
-
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(text)
+  const copyToClipboard = async () => {
+    await navigator.clipboard.writeText(text)
     alert('Metin kopyalandı!')
+  }
+
+  // SVG indir (en sorunsuz yöntem)
+  const svgMarkup = useMemo(() => {
+    if (!qrValue) return ''
+    // qrcode.react, SVG render ederken <svg> üretir; onu kapsayıcıdan alacağız.
+    return ''
+  }, [qrValue])
+
+  const downloadQR = () => {
+    if (!qrValue) return
+    const svg = document.getElementById('qr-svg')
+    if (!svg) return
+
+    const serializer = new XMLSerializer()
+    const source = serializer.serializeToString(svg)
+    const blob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+
+    const link = document.createElement('a')
+    link.href = url
+    link.download = 'qrcode.svg'
+    link.click()
+
+    URL.revokeObjectURL(url)
   }
 
   return (
@@ -52,7 +50,7 @@ export default function QRCodeGenerator() {
           onChange={(e) => setText(e.target.value)}
           placeholder="URL, metin veya veri girin..."
           rows="4"
-        ></textarea>
+        />
 
         <div className="button-group">
           <button onClick={generateQR}>✨ QR Oluştur</button>
@@ -62,7 +60,16 @@ export default function QRCodeGenerator() {
 
       {qrValue && (
         <div className="qr-display">
-          <div className="qr-wrapper" ref={containerRef}></div>
+          <div className="qr-wrapper">
+            <QRCode
+              id="qr-svg"
+              value={qrValue}
+              size={256}
+              level="H"
+              includeMargin={true}
+              renderAs="svg"
+            />
+          </div>
 
           <div className="qr-actions">
             <button onClick={downloadQR}>⬇️ İndir</button>
