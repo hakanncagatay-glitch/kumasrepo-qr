@@ -1,37 +1,61 @@
-import { useState } from 'react'
-import QRCode from 'qrcode.react'
+import { useState, useEffect } from 'react'
 import '../styles/QRCodeGenerator.css'
 
 export default function QRCodeGenerator() {
   const [text, setText] = useState('')
   const [qrValue, setQrValue] = useState('')
+  const [qrScript, setQrScript] = useState(false)
+
+  // qr.js kütüphanesini yükle (sadece 1 kere)
+  useEffect(() => {
+    if (window.QRCode) {
+      setQrScript(true)
+      return
+    }
+
+    const script = document.createElement('script')
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js'
+    script.onload = () => setQrScript(true)
+    document.head.appendChild(script)
+  }, [])
+
+  // QR oluştur
+  useEffect(() => {
+    if (!qrValue || !qrScript) return
+
+    const container = document.getElementById('qr-container')
+    container.innerHTML = '' // Öncekini temizle
+
+    new window.QRCode(container, {
+      text: qrValue,
+      width: 256,
+      height: 256,
+      colorDark: '#000000',
+      colorLight: '#ffffff',
+      correctLevel: window.QRCode.CorrectLevel.H,
+    })
+  }, [qrValue, qrScript])
 
   const generateQR = () => {
-    const v = text.trim()
-    if (v) setQrValue(v)
-  }
-
-  const copyToClipboard = async () => {
-    await navigator.clipboard.writeText(text)
-    alert('Metin kopyalandı!')
+    if (text.trim()) setQrValue(text.trim())
   }
 
   const downloadQR = () => {
     if (!qrValue) return
-    const svg = document.getElementById('qr-svg')
-    if (!svg) return
 
-    const serializer = new XMLSerializer()
-    const source = serializer.serializeToString(svg)
-    const blob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
+    const canvas = document.querySelector('#qr-container canvas')
+    if (!canvas) return
 
+    const url = canvas.toDataURL('image/png')
     const link = document.createElement('a')
     link.href = url
-    link.download = 'qrcode.svg'
+    link.download = 'qrcode.png'
     link.click()
+  }
 
-    URL.revokeObjectURL(url)
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(text)
+    alert('Metin kopyalandı!')
   }
 
   return (
@@ -54,14 +78,7 @@ export default function QRCodeGenerator() {
       {qrValue && (
         <div className="qr-display">
           <div className="qr-wrapper">
-            <QRCode
-              id="qr-svg"
-              value={qrValue}
-              size={256}
-              level="H"
-              includeMargin={true}
-              renderAs="svg"
-            />
+            <div id="qr-container"></div>
           </div>
 
           <div className="qr-actions">
