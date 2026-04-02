@@ -1,0 +1,73 @@
+.scanner-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.camera-btn {
+  padding: 12px 30px;
+  background: #ff6b6b;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.3s;
+}
+
+.camera-btn:hover {
+  background: #ee5a52;
+}
+
+.camera-container {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.camera-container video {
+  width: 100%;
+  border-radius: 10px;
+  border: 2px solid #667eea;
+}
+
+.stop-btn {
+  width: 100%;
+  padding: 12px;
+  background: #ff6b6b;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-top: 10px;
+  transition: background 0.3s;
+}
+
+.stop-btn:hover {
+  background: #ee5a52;
+}
+
+.result-text {
+  font-size: 16px;
+  word-break: break-all;
+  color: #667eea;
+  margin: 10px 0;
+}
+
+.scan-result button {
+  padding: 10px 20px;
+  background: #adb5bd;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s;
+  margin-top: 10px;
+}
+
+.scan-result button:hover {
+  background: #868e96;
+}
