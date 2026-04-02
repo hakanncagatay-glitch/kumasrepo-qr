@@ -1,0 +1,82 @@
+.home-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 30px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.navbar h1 {
+  margin: 0;
+  color: #333;
+  font-size: 24px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.user-info span {
+  color: #666;
+  font-size: 14px;
+}
+
+.logout-btn {
+  padding: 10px 20px;
+  background: #ff6b6b;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.3s;
+}
+
+.logout-btn:hover {
+  background: #ff5252;
+}
+
+.tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 30px;
+  justify-content: center;
+}
+
+.tab {
+  padding: 12px 30px;
+  background: white;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  transition: all 0.3s;
+  color: #667eea;
+}
+
+.tab.active {
+  background: #667eea;
+  color: white;
+  border-color: white;
+}
+
+.tab:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.content {
+  max-width: 800px;
+  margin: 0 auto;
+}
