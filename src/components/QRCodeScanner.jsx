@@ -1,33 +1,49 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import jsQR from 'jsqr'
 
 export default function QRCodeScanner() {
   const [scanResult, setScanResult] = useState('')
   const [cameraActive, setCameraActive] = useState(false)
+  const [error, setError] = useState('')
   const videoRef = useRef(null)
   const canvasRef = useRef(null)
+  const streamRef = useRef(null)
 
   // KAMERA BAŞLAT
   const startCamera = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'environment' } 
+      setError('')
+      
+      // Kamera izni iste
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: 'environment',
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        },
+        audio: false
       })
-      videoRef.current.srcObject = stream
+      
+      streamRef.current = stream
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream
+        videoRef.current.play()
+      }
+      
       setCameraActive(true)
       scanQRFromCamera()
-    } catch (error) {
-      alert('Kamera erişimi reddedildi!')
+    } catch (err) {
+      console.error('Kamera hatası:', err)
+      setError('Kamera erişimi reddedildi! Lütfen izin verin.')
     }
   }
 
   // KAMERA DURDUR
   const stopCamera = () => {
-    if (videoRef.current && videoRef.current.srcObject) {
-      videoRef.current.srcObject.getTracks().forEach(track => track.stop())
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop())
     }
     setCameraActive(false)
-    setScanResult('')
   }
 
   // KAMERADA QR KOD TARA
@@ -38,20 +54,25 @@ export default function QRCodeScanner() {
     if (!canvas || !video) return
 
     const ctx = canvas.getContext('2d')
+    
     const scanInterval = setInterval(() => {
-      if (video.readyState === video.HAVE_ENOUGH_DATA) {
-        canvas.width = video.videoWidth
-        canvas.height = video.videoHeight
-        ctx.drawImage(video, 0, 0)
+      try {
+        if (video.readyState === video.HAVE_ENOUGH_DATA) {
+          canvas.width = video.videoWidth
+          canvas.height = video.videoHeight
+          ctx.drawImage(video, 0, 0)
 
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
-        const code = jsQR(imageData.data, imageData.width, imageData.height)
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+          const code = jsQR(imageData.data, imageData.width, imageData.height)
 
-        if (code) {
-          setScanResult(code.data)
-          stopCamera()
-          clearInterval(scanInterval)
+          if (code) {
+            setScanResult(code.data)
+            stopCamera()
+            clearInterval(scanInterval)
+          }
         }
+      } catch (err) {
+        console.error('Tarama hatası:', err)
       }
     }, 100)
   }
@@ -85,6 +106,14 @@ export default function QRCodeScanner() {
     reader.readAsDataURL(file)
   }
 
+  useEffect(() => {
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop())
+      }
+    }
+  }, [])
+
   return (
     <div className="qr-scanner">
       <h2>✨ QR Kod Oku</h2>
@@ -108,10 +137,22 @@ export default function QRCodeScanner() {
               📤 QR Kod Resmi Yükle
             </label>
           </div>
+
+          {error && (
+            <div className="error-message">
+              ⚠️ {error}
+            </div>
+          )}
         </>
       ) : (
         <div className="camera-container">
-          <video ref={videoRef} autoPlay playsInline></video>
+          <video 
+            ref={videoRef} 
+            autoPlay 
+            playsInline
+            muted
+            style={{ transform: 'scaleX(-1)' }}
+          ></video>
           <button className="stop-btn" onClick={stopCamera}>
             ⏹️ Durdur
           </button>
