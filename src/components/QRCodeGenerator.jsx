@@ -3,7 +3,7 @@ import '../styles/QRCodeGenerator.css'
 
 export default function QRCodeGenerator() {
   const [text, setText] = useState('')
-  const [qrValue, setQrValue] = useState('')
+  const [qrUrl, setQrUrl] = useState('')
 
   const generateQR = () => {
     const v = text.trim()
@@ -11,12 +11,13 @@ export default function QRCodeGenerator() {
       alert('Lütfen metin girin!')
       return
     }
-    setQrValue(v)
+    // URL'yi direkt oluştur
+    const url = `https://chart.googleapis.com/chart?chs=300x300&chld=L|0&cht=qr&chl=${encodeURIComponent(v)}`
+    setQrUrl(url)
   }
 
   const downloadQR = () => {
-    if (!qrValue) return
-    const qrUrl = `https://chart.googleapis.com/chart?chs=300x300&chld=L|0&cht=qr&chl=${encodeURIComponent(qrValue)}`
+    if (!qrUrl) return
     const link = document.createElement('a')
     link.href = qrUrl
     link.download = 'qrcode.png'
@@ -41,15 +42,18 @@ export default function QRCodeGenerator() {
 
         <div className="button-group">
           <button onClick={generateQR}>✨ QR Oluştur</button>
-          <button onClick={() => setText('')}>🗑️ Temizle</button>
+          <button onClick={() => {
+            setText('')
+            setQrUrl('')
+          }}>🗑️ Temizle</button>
         </div>
       </div>
 
-      {qrValue && (
+      {qrUrl && (
         <div className="qr-display">
           <div className="qr-wrapper">
             <img
-              src={`https://chart.googleapis.com/chart?chs=300x300&chld=L|0&cht=qr&chl=${encodeURIComponent(qrValue)}`}
+              src={qrUrl}
               alt="QR Code"
               style={{ maxWidth: '100%', height: 'auto' }}
             />
@@ -58,7 +62,7 @@ export default function QRCodeGenerator() {
           <div className="qr-actions">
             <button onClick={downloadQR}>⬇️ İndir</button>
             <button onClick={copyToClipboard}>📋 Metni Kopyala</button>
-            <button onClick={() => setQrValue('')}>🗑️ Sil</button>
+            <button onClick={() => setQrUrl('')}>🗑️ Sil</button>
           </div>
         </div>
       )}
