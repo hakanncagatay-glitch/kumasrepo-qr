@@ -1,54 +1,24 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import '../styles/QRCodeGenerator.css'
 
 export default function QRCodeGenerator() {
   const [text, setText] = useState('')
   const [qrValue, setQrValue] = useState('')
-  const [qrScript, setQrScript] = useState(false)
-
-  // qr.js kütüphanesini yükle (sadece 1 kere)
-  useEffect(() => {
-    if (window.QRCode) {
-      setQrScript(true)
-      return
-    }
-
-    const script = document.createElement('script')
-    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js'
-    script.onload = () => setQrScript(true)
-    document.head.appendChild(script)
-  }, [])
-
-  // QR oluştur
-  useEffect(() => {
-    if (!qrValue || !qrScript) return
-
-    const container = document.getElementById('qr-container')
-    container.innerHTML = '' // Öncekini temizle
-
-    new window.QRCode(container, {
-      text: qrValue,
-      width: 256,
-      height: 256,
-      colorDark: '#000000',
-      colorLight: '#ffffff',
-      correctLevel: window.QRCode.CorrectLevel.H,
-    })
-  }, [qrValue, qrScript])
 
   const generateQR = () => {
-    if (text.trim()) setQrValue(text.trim())
+    const v = text.trim()
+    if (!v) {
+      alert('Lütfen metin girin!')
+      return
+    }
+    setQrValue(v)
   }
 
   const downloadQR = () => {
     if (!qrValue) return
-
-    const canvas = document.querySelector('#qr-container canvas')
-    if (!canvas) return
-
-    const url = canvas.toDataURL('image/png')
+    const qrUrl = `https://chart.googleapis.com/chart?chs=300x300&chld=L|0&cht=qr&chl=${encodeURIComponent(qrValue)}`
     const link = document.createElement('a')
-    link.href = url
+    link.href = qrUrl
     link.download = 'qrcode.png'
     link.click()
   }
@@ -78,7 +48,11 @@ export default function QRCodeGenerator() {
       {qrValue && (
         <div className="qr-display">
           <div className="qr-wrapper">
-            <div id="qr-container"></div>
+            <img
+              src={`https://chart.googleapis.com/chart?chs=300x300&chld=L|0&cht=qr&chl=${encodeURIComponent(qrValue)}`}
+              alt="QR Code"
+              style={{ maxWidth: '100%', height: 'auto' }}
+            />
           </div>
 
           <div className="qr-actions">
