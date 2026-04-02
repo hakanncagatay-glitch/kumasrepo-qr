@@ -14,27 +14,52 @@ export default function QRCodeScanner() {
     try {
       setError('')
       
-      // Kamera izni iste
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: 'environment',
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
+      // Farklı constraints dene
+      const constraints = [
+        {
+          video: {
+            facingMode: 'environment',
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          },
+          audio: false
         },
-        audio: false
-      })
+        {
+          video: { facingMode: 'environment' },
+          audio: false
+        },
+        {
+          video: true,
+          audio: false
+        }
+      ]
+
+      let stream = null
       
+      for (const constraint of constraints) {
+        try {
+          stream = await navigator.mediaDevices.getUserMedia(constraint)
+          break
+        } catch (e) {
+          console.log('Bu constraint çalışmadı, sonraki deneniyor...')
+        }
+      }
+
+      if (!stream) {
+        throw new Error('Hiçbir kamera constraint çalışmadı')
+      }
+
       streamRef.current = stream
       if (videoRef.current) {
         videoRef.current.srcObject = stream
-        videoRef.current.play()
+        await videoRef.current.play()
       }
       
       setCameraActive(true)
       scanQRFromCamera()
     } catch (err) {
       console.error('Kamera hatası:', err)
-      setError('Kamera erişimi reddedildi! Lütfen izin verin.')
+      setError('Kamera erişimi reddedildi! Resim yükle seçeneğini kullanabilirsin.')
     }
   }
 
