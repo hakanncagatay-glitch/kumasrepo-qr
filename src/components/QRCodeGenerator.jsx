@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import QRCode from 'qrcode.react'
 import '../styles/QRCodeGenerator.css'
 
@@ -15,13 +15,6 @@ export default function QRCodeGenerator() {
     await navigator.clipboard.writeText(text)
     alert('Metin kopyalandı!')
   }
-
-  // SVG indir (en sorunsuz yöntem)
-  const svgMarkup = useMemo(() => {
-    if (!qrValue) return ''
-    // qrcode.react, SVG render ederken <svg> üretir; onu kapsayıcıdan alacağız.
-    return ''
-  }, [qrValue])
 
   const downloadQR = () => {
     if (!qrValue) return
