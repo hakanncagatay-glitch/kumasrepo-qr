@@ -1,47 +1,60 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState } from 'react'
 import '../styles/QRCodeGenerator.css'
 
 export default function QRCodeGenerator() {
   const [text, setText] = useState('')
-  const [showQR, setShowQR] = useState(false)
-  const canvasRef = useRef(null)
+  const [qrDataUrl, setQrDataUrl] = useState('')
 
-  // QR kütüphanesini yükle
-  useEffect(() => {
-    if (!window.QRCode) {
-      const script = document.createElement('script')
-      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js'
-      document.head.appendChild(script)
-    }
-  }, [])
-
-  const generateQR = () => {
+  const generateQR = async () => {
     const v = text.trim()
     if (!v) {
       alert('Lütfen metin girin!')
       return
     }
 
-    // QR oluştur
-    const container = document.getElementById('qr-code-canvas')
-    if (container) container.innerHTML = ''
+    try {
+      // QR kütüphanesini dinamik yükle
+      const script = document.createElement('script')
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js'
+      
+      script.onload = () => {
+        // Kütüphane yüklendikten sonra
+        const tempDiv = document.createElement('div')
+        tempDiv.id = 'temp-qr'
+        document.body.appendChild(tempDiv)
 
-    if (window.QRCode) {
-      new window.QRCode(document.getElementById('qr-code-canvas'), {
-        text: v,
-        width: 256,
-        height: 256,
-      })
-      setShowQR(true)
+        new window.QRCode(tempDiv, {
+          text: v,
+          width: 256,
+          height: 256,
+        })
+
+        // Canvas'ı data URL'ye çevir
+        setTimeout(() => {
+          const canvas = tempDiv.querySelector('canvas')
+          if (canvas) {
+            const dataUrl = canvas.toDataURL('image/png')
+            setQrDataUrl(dataUrl)
+          }
+          document.body.removeChild(tempDiv)
+        }, 500)
+      }
+
+      if (!window.QRCode) {
+        document.head.appendChild(script)
+      } else {
+        script.onload()
+      }
+    } catch (e) {
+      console.error('QR Error:', e)
+      alert('QR Kod oluşturulamadı!')
     }
   }
 
   const downloadQR = () => {
-    const canvas = document.querySelector('#qr-code-canvas canvas')
-    if (!canvas) return
-
+    if (!qrDataUrl) return
     const link = document.createElement('a')
-    link.href = canvas.toDataURL('image/png')
+    link.href = qrDataUrl
     link.download = 'qrcode.png'
     link.click()
   }
@@ -64,23 +77,20 @@ export default function QRCodeGenerator() {
 
         <div className="button-group">
           <button onClick={generateQR}>✨ QR Oluştur</button>
-          <button onClick={() => {
-            setText('')
-            setShowQR(false)
-          }}>🗑️ Temizle</button>
+          <button onClick={() => setText('')}>🗑️ Temizle</button>
         </div>
       </div>
 
-      {showQR && (
+      {qrDataUrl && (
         <div className="qr-display">
           <div className="qr-wrapper">
-            <div id="qr-code-canvas"></div>
+            <img src={qrDataUrl} alt="QR Code" style={{ maxWidth: '100%' }} />
           </div>
 
           <div className="qr-actions">
             <button onClick={downloadQR}>⬇️ İndir</button>
             <button onClick={copyToClipboard}>📋 Metni Kopyala</button>
-            <button onClick={() => setShowQR(false)}>🗑️ Sil</button>
+            <button onClick={() => setQrDataUrl('')}>🗑️ Sil</button>
           </div>
         </div>
       )}
